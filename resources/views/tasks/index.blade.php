@@ -10,9 +10,46 @@
     <div class="card shadow-sm">
         <div class="card-header bg-white d-flex justify-content-between align-items-center">
             <h5 class="mb-0">Danh sách công việc</h5>
-            <a href="{{ route('tasks.create') }}" class="btn btn-sm btn-primary">+ Thêm Task</a>
+            <div class="d-flex gap-2">
+                <a href="{{ route('tasks.create') }}" class="btn btn-sm btn-primary">+ Thêm Task</a>
+                @if (request()->has('search') || request()->has('status') || request()->has('sort_option'))
+                    <a href="{{ route('tasks.index') }}" class="btn btn-sm btn-warning">x Xóa bộ lọc</a>
+                @endif
+            </div>
         </div>
         <div class="card-body">
+            <form method="GET" action="{{ route('tasks.index') }}" class="row mb-3">
+                {{-- Tìm kiếm --}}
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" value="{{ request('search') }}" placeholder="Tìm kiếm task...">
+                </div>
+
+                {{-- Lọc theo trạng thái --}}
+                <div class="col-md-3">
+                    <select name="status" class="form-select">
+                        <option value="">-- Lọc theo trạng thái --</option>
+                        <option value="0" @if (request('status') === '0') selected @endif>Chưa bắt đầu</option>
+                        <option value="1" @if (request('status') === '1') selected @endif>Đang làm</option>
+                        <option value="2" @if (request('status') === '2') selected @endif>Hoàn thành</option>
+                    </select>
+                </div>
+
+                {{-- Sắp xếp --}}
+                <div class="col-md-3">
+                    <select name="sort_option" class="form-select">
+                        <option value="">-- Sắp xếp theo --</option>
+                        <option value="due_date_asc" @if (request('sort_option') === 'due_date_asc') selected @endif>Sắp đến hạn chót</option>
+                        <option value="due_date_desc" @if (request('sort_option') === 'due_date_desc') selected @endif>Chưa đến hạn chót</option>
+                        <option value="created_at_desc" @if (request('sort_option') === 'created_at_desc') selected @endif>Ngày tạo mới nhất</option>
+                        <option value="created_at_asc" @if (request('sort_option') === 'created_at_asc') selected @endif>Ngày tạo cũ nhất</option>
+                    </select>
+                </div>
+
+                {{-- Submit --}}
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Lọc</button>
+                </div>
+            </form>
             <table class="table table-hover align-middle">
                 <thead>
                     <tr>

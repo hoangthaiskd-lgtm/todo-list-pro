@@ -13,7 +13,8 @@ class Task extends Model {
         'description', 
         'status', 
         'due_date', 
-        'user_id'
+        'user_id',
+        'created_at'
     ];
 
     const NOT_STARTED = 0;

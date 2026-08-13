@@ -8,8 +8,45 @@ use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller {
     // Danh sách tasks của user
-    public function index() {
-        $tasks = Task::with('user')->orderBy('due_date')->paginate(10);
+    public function index(Request $request) {
+        $query = Task::query();
+
+        // Tìm kiếm
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'LIKE', '%'. $request->search .'%')->orWhere('description', 'LIKE', '%'. $request->search .'%');
+            });
+        }
+
+        // Lọc theo trạng thái
+        $isStatus = in_array($request->status, [
+            Task::NOT_STARTED,
+            Task::IN_PROGRESS,
+            Task::COMPLETED
+        ]);
+        if ($request->filled('status') && $isStatus) {
+            $query->where('status', $request->status);
+        }
+
+        // Sắp xếp
+        switch ($request->sort_option) {
+            case 'due_date_asc':
+                $query->orderBy('due_date');
+                break;
+            case 'due_date_desc':
+                $query->orderBy('due_date', 'desc');
+                break;
+            case 'created_at_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'created_at_asc':
+                $query->orderBy('created_at');
+                break;
+            default:
+                $query->orderBy('id', 'desc');
+        }
+
+        $tasks = $query->with('user')->paginate(10)->appends($request->all());
         
         return view('tasks.index', compact('tasks'));
     }
