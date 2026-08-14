@@ -96,4 +96,23 @@ class TaskController extends Controller {
 
         return redirect()->route('tasks.index')->with('success', 'Xóa task thành công!');
     }
+
+    // Cập nhật trạng thái
+    public function updateStatus(Request $request, $id) {
+        $validated = $request->validate([
+            'status' => 'required|in:0,1,2'
+        ]);
+        
+        $task = Task::findOrFail($id);
+
+        $task->update([
+            'status' => $validated['status']
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Cập nhật trạng thái thành công!',
+            'status' => $task->status
+        ]);
+    }
 }
