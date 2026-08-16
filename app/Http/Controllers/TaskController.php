@@ -51,6 +51,50 @@ class TaskController extends Controller {
         return view('tasks.index', compact('tasks'));
     }
 
+    // Danh sách thùng rác
+    public function trash(Request $request) {
+        $query = Task::query();
+
+        // Tìm kiếm
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('title', 'LIKE', '%'. $request->search .'%')->orWhere('description', 'LIKE', '%'. $request->search .'%');
+            });
+        }
+
+        // Lọc theo trạng thái
+        $isStatus = in_array($request->status, [
+            Task::NOT_STARTED,
+            Task::IN_PROGRESS,
+            Task::COMPLETED
+        ]);
+        if ($request->filled('status') && $isStatus) {
+            $query->where('status', $request->status);
+        }
+
+        // Sắp xếp
+        switch ($request->sort_option) {
+            case 'due_date_asc':
+                $query->orderBy('due_date');
+                break;
+            case 'due_date_desc':
+                $query->orderBy('due_date', 'desc');
+                break;
+            case 'created_at_desc':
+                $query->orderBy('created_at', 'desc');
+                break;
+            case 'created_at_asc':
+                $query->orderBy('created_at');
+                break;
+            default:
+                $query->orderBy('id', 'desc');
+        }
+
+        $tasks = $query->onlyTrashed()->with('user')->paginate(10)->appends($request->all());
+        
+        return view('tasks.trash', compact('tasks'));
+    }
+
     // Tạo task mới
     public function create() {
         return view('tasks.create');
@@ -114,5 +158,26 @@ class TaskController extends Controller {
             'message' => 'Cập nhật trạng thái thành công!',
             'status' => $task->status
         ]);
+    }
+
+    // Khôi phục task từ thùng rác
+    public function restore($id) {
+        Task::withTrashed()->findOrFail($id)->restore();
+
+        return redirect()->route('tasks.index')->with('success', 'Khôi phục task thành công!');
+    }
+
+    // Xóa task trong thùng rác
+    public function forceDelete($id) {
+        Task::withTrashed()->findOrFail($id)->forceDelete();
+
+        return redirect()->route('tasks.trash')->with('success', 'Xóa task khỏi thùng rác thành công!');
+    }
+
+    // Xóa tất cả task trong thùng rác
+    public function forceDeleteAll() {
+        Task::onlyTrashed()->forceDelete();
+
+        return redirect()->route('tasks.trash')->with('success', 'Xóa tất cả task trong thùng rác thành công!');
     }
 }

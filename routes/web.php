@@ -22,6 +22,13 @@ require __DIR__.'/auth.php';
 // Task
 Route::middleware(['auth'])->group(function() {
     Route::get('/', [TaskController::class, 'index'])->name('tasks.index');
+
+    // Danh sách thùng rác
+    Route::get('/trash', [TaskController::class, 'trash'])->name('tasks.trash');
+    Route::post('/{id}/restore', [TaskController::class, 'restore'])->name('tasks.restore');
+    Route::delete('/{id}/forceDelete', [TaskController::class, 'forceDelete'])->name('tasks.forceDelete');
+    Route::delete('/forceDelete', [TaskController::class, 'forceDeleteAll'])->name('tasks.forceDeleteAll');
+
     Route::get('/create', [TaskController::class, 'create'])->name('tasks.create');
     Route::post('/', [TaskController::class, 'store'])->name('tasks.store');
     Route::get('/{task}', [TaskController::class, 'show'])->name('tasks.show');
